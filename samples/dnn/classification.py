@@ -66,15 +66,19 @@ def main(func_args=None):
         with open(args.classes, 'rt') as f:
             classes = f.read().rstrip('\n').split('\n')
 
+    ## [Read and initialize network]
     # Load a network
     net = cv.dnn.readNet(args.model, args.config, args.framework)
     net.setPreferableBackend(args.backend)
     net.setPreferableTarget(args.target)
+    ## [Read and initialize network]
 
     winName = 'Deep learning image classification in OpenCV'
     cv.namedWindow(winName, cv.WINDOW_NORMAL)
 
+    ## [Open a video file or an image file or a camera stream]
     cap = cv.VideoCapture(args.input if args.input else 0)
+    ## [Open a video file or an image file or a camera stream]
     while cv.waitKey(1) < 0:
         hasFrame, frame = cap.read()
         if not hasFrame:
@@ -88,18 +92,26 @@ def main(func_args=None):
         if args.initial_width and args.initial_height:
             frame = cv.resize(frame, (args.initial_width, args.initial_height))
 
+        ## [Create a 4D blob from a frame]
         blob = cv.dnn.blobFromImage(frame, args.scale, (inpWidth, inpHeight), args.mean, args.rgb, crop=args.crop)
         if args.std:
             blob[0] /= np.asarray(args.std, dtype=np.float32).reshape(3, 1, 1)
+        ## [Create a 4D blob from a frame]
 
         # Run a model
+        ## [Set input blob]
         net.setInput(blob)
+        ## [Set input blob]
+        ## [Make forward pass]
         out = net.forward()
+        ## [Make forward pass]
 
+        ## [Get a class with a highest score]
         # Get a class with a highest score.
         out = out.flatten()
         classId = np.argmax(out)
         confidence = out[classId]
+        ## [Get a class with a highest score]
 
         # Put efficiency information.
         t, _ = net.getPerfProfile()
